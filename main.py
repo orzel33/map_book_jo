@@ -1,6 +1,5 @@
 from utils.crude import read
-from models.data import users # * importuje wszystko
-
+from models.data import users
 
 if __name__ == '__main__':
 
