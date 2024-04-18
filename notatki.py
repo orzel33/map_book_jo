@@ -9,4 +9,10 @@ users: list[dict] = [
 ]
 
 
-
+def remove(users: list[dict]) -> None:
+    user_name: str = input('Kogo szukasz?: ')
+    for user in users[1:]:
+         if user['name'] == user_name:
+             users.remove(user)
+remove(users)
+print(users)
