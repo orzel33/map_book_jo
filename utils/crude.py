@@ -10,4 +10,9 @@ def create_user(users:list[dict])->None:
     user: dict = {'name': name, 'surname': surname, 'posts': posts}
     users.append(user)
 
+def search_user(users: list[dict]) -> None:
+    user_name: str = input('Kogo szukasz?: ')
+    for user in users[1:]:
+         if user['name'] == user_name:
+              print(user)
 
