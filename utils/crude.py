@@ -22,3 +22,13 @@ def remove(users: list[dict]) -> None:
          if user['name'] == user_name:
              users.remove(user)
 
+def update(users: list[dict]) -> None:
+    user_name: str = input('Kogo szukasz?: ')
+    for user in users[1:]:
+     if user['name']==user_name:
+        new_user_name= input('Wprowadź nowe imię: ')
+        new_user_surname= input('Wprowadź nowe nazwisko: ')
+        new_user_posts= input('Wprowadź nową ilość postów')
+        user['surname']=new_user_surname
+        user['name']= new_user_name
+        user['posts']= new_user_posts

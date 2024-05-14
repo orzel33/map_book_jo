@@ -1,4 +1,4 @@
-from utils.crude import read, create_user, search_user, remove
+from utils.crude import read, create_user, search_user, remove, update
 from models.data import users
 
 
@@ -12,6 +12,7 @@ if __name__ == '__main__':
         print('2.Dodaj znajomego: ')
         print('3.Wyszukaj znajomego: ')
         print('4.Usuń znajmoego: ')
+        print('Uaktualnij znajomego')
         menu_option:str=input('Wybierz dostępną funckję z menu: ')
         if menu_option=='0':
             break
@@ -24,3 +25,5 @@ if __name__ == '__main__':
             search_user(users)
         if menu_option == '4':
             remove(users)
+            if menu_option == '5':
+                remove(users)
