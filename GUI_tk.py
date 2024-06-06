@@ -23,7 +23,7 @@ class User:
         latitude = float(response_html.select('.latitude')[1].text.replace(',', '.'))
         longitude = float(response_html.select('.longitude')[1].text.replace(',', '.'))
         print([latitude, longitude])
-        return latitude, longitude
+        return ([latitude, longitude])
 
 def dodaj_uzytkownika():
     imie=entry_imie.get()
