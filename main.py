@@ -1,4 +1,4 @@
-from utils.crude import read, create_user, search_user, remove, update
+from utils.crude import read, create_user, search_user, remove, update,db_params, add_user, read_db,remove_user_db,update_db
 from models.data import users
 
 
@@ -17,13 +17,13 @@ if __name__ == '__main__':
         if menu_option=='0':
             break
         if menu_option == '1':
-           read(users)
+           read_db(db_params)
 
         if menu_option == '2':
-            create_user(users)
+            create_user(db_params)
         if menu_option == '3':
             search_user(users)
         if menu_option == '4':
-            remove(users)
-            if menu_option =='5':
-              update(users)
+            remove_user_db(db_params)
+        if menu_option =='5':
+              update_db(db_params)
