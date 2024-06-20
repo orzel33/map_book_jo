@@ -4,48 +4,68 @@ from tkinter import *
 import requests
 from bs4 import BeautifulSoup
 import tkintermapview
+import psycopg2
+
+db_params=psycopg2.connect(
+    user="postgres",database="postgres",host="localhost",port="5432",password="geoinformatyka"
+)
 
 users=[]
 class User:
-    def __init__(self, imie, nazwisko, posty, miejscowosc):
-        self.imie = imie
-        self.nazwisko = nazwisko
-        self.posty = posty
-        self.miejscowosc = miejscowosc
-        self.coords=User.get_coords(self)
-        self.marker= map_widget.set_marker(self.coords[0], self.coords[1], text=f"{self.imie}")
+    def __init__(self, name, surname, posts, location, coords):
+        self.imie = name
+        self.nazwisko = surname
+        self.posty = posts
+        self.miejscowosc = location
+        self.coords= coords
+        self.marker= map_widget.set_marker(float(self.coords.split(' ')[1][0:-1]), self.coords.split(' ')[0][6:], text=f"{self.imie}")
 
-    def get_coords(self) -> list:
-        adres_url = f'https://pl.wikipedia.org/wiki/{self.miejscowosc}'
-        response = requests.get(adres_url)
-        response_html = BeautifulSoup(response.text, 'html.parser')
-        # print  (response_html)
-        latitude = float(response_html.select('.latitude')[1].text.replace(',', '.'))
-        longitude = float(response_html.select('.longitude')[1].text.replace(',', '.'))
-        print([latitude, longitude])
-        return ([latitude, longitude])
+def get_coords(location):
+    adres_url = f'https://pl.wikipedia.org/wiki/{location}'
+    response = requests.get(adres_url)
+    response_html = BeautifulSoup(response.text, 'html.parser')
+    # print  (response_html)
+    latitude = float(response_html.select('.latitude')[1].text.replace(',', '.'))
+    longitude = float(response_html.select('.longitude')[1].text.replace(',', '.'))
+    print([latitude, longitude])
+    return ([latitude, longitude])
 
 def dodaj_uzytkownika():
-    imie=entry_imie.get()
-    nazwisko=entry_nazwisko.get()
-    posty=entry_posty.get()
-    miejscowosc=entry_miejscowosc.get()
-    user=User(imie, nazwisko, posty, miejscowosc)
-
+    name=entry_imie.get()
+    surname=entry_nazwisko.get()
+    posts=entry_posty.get()
+    location=entry_miejscowosc.get()
+    user= User(name, surname, posts, location)
     users.append(user)
-    print (user.imie)
-    lista_uzytkownikow()
+
+
     entry_imie.delete(0, END)
     entry_nazwisko.delete(0, END)
     entry_posty.delete(0, END)
     entry_miejscowosc.delete(0, END)
     entry_imie.focus()
 
-
+    longitude, latitude = get_coords(location)
+    cursor=db_params.cursor()
+    sql=f"INSERT INTO public.users(name, surname, posts, location, coords) VALUES('{name}', '{surname}',{posts}, '{location}', 'SRID=4326;POINT({latitude} {longitude})');"
+    cursor.execute(sql)
+    db_params.commit()
+    cursor.close()
+    print(user.imie)
+    lista_uzytkownikow()
 def lista_uzytkownikow():
     listbox_lista_obiektow.delete(0, END)
-    for idx, user in enumerate(users):
-        listbox_lista_obiektow.insert(idx, f'{user.imie} {user.nazwisko}')
+    for user in users:
+        user.marker.delete()
+    cursor = db_params.cursor()
+    sql = f"SELECT id,name,surname,posts,location,st_astext(coords) FROM public.users"
+    cursor.execute(sql)
+    users_db = cursor.fetchall()
+    cursor.close()
+    for idx, user in enumerate(users_db):
+        listbox_lista_obiektow.insert(idx, f'{user}')
+        user = User(user [1],user [2], user[3], user[4], user[5])
+        users.append(user)
 
 def pokaz_szczegoly_uzytkownika():
     i=listbox_lista_obiektow.index(ACTIVE)
@@ -64,6 +84,11 @@ def pokaz_szczegoly_uzytkownika():
 
 def usun_uzytkownika():
     i=listbox_lista_obiektow.index(ACTIVE)
+    cursor=db_params.cursor()
+    sql=f"DELETE FROM public.users WHERE name='{users[i].imie}';"
+    cursor.execute(sql)
+    db_params.commit()
+    cursor.close()
     users[i].marker.delete()
     users.pop(i)
     lista_uzytkownikow()
@@ -86,11 +111,14 @@ def aktualizuj_uzytkownika(i):
     users[i].nazwisko=entry_nazwisko.get()
     users[i].posty=entry_posty.get()
     users[i].miejscowosc=entry_miejscowosc.get()
-    users[i].coords=User.get_coords(users[i])
+    users[i].coords= get_coords(users[i].miejscowosc)
     users[i].marker.delete()
     users[i].marker = map_widget.set_marker(users[i].coords[0], users[i].coords[1], text=f"{users[i].imie}")
-    lista_uzytkownikow()
-
+    cursor = db_params.cursor()
+    sql = f"UPDATE public.users SET name='{users[i].imie}', surname='{users[i].nazwisko}', posts='{users[i].posty}', location='{users[i].miejscowosc}', coords='SRID=4326;POINT({users[i].coords[1]} {users[i].coords[0]})' WHERE name='{users[i].name}';"
+    cursor.execute(sql)
+    db_params.commit()
+    cursor.close()
     entry_imie.delete(0, END)
     entry_nazwisko.delete(0, END)
     entry_posty.delete(0, END)

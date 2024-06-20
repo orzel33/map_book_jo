@@ -54,12 +54,12 @@ create_user(db_params)
 
 def read_db(db_params)-> None:
     cursor=db_params.cursor()
-    sql=f"SELECT * FROM public.users"
+    sql=f"SELECT id,st_astext(coords)  FROM public.users"
     cursor.execute(sql)
     users=cursor.fetchall()
     cursor.close()
     for user in users:
-        print(user)
+        print(user[0], user[1].split(' ')[0][6:])
 
 read_db(db_params)
 def remove_user_db(db_params)-> None:
@@ -69,3 +69,14 @@ def remove_user_db(db_params)-> None:
     db_params.commit()
     cursor.close()
 remove_user_db(db_params)
+
+
+def get_coords(user) -> None:
+    adres_url = f'https://pl.wikipedia.org/wiki/{user.miejscowosc}'
+    response = requests.get(adres_url)
+    response_html = BeautifulSoup(response.text, 'html.parser')
+    # print  (response_html)
+    latitude = float(response_html.select('.latitude')[1].text.replace(',', '.'))
+    longitude = float(response_html.select('.longitude')[1].text.replace(',', '.'))
+    print([latitude, longitude])
+    return ([latitude, longitude])
